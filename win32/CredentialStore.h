@@ -2,6 +2,7 @@
 #define __CREDENTIAL_STORE_H_INCL__
 
 #include <stdint.h>
+#include <windows.h>
 
 #define PRECONDITION(a)                                                        \
    if (!(a)) {                                                                  \
@@ -28,27 +29,57 @@ a = NULL;  \
 #ifndef __cplusplus__
 extern "C" {
 #endif // #ifndef __cplusplus__
-   
-int32_t SLCS_CreateCredentials(const char *id, const uint32_t idLength,
-                               const char *login, const uint32_t loginLength,
-                               const void *password,
-                               const uint32_t passwordLength);
 
-int32_t SLCS_ReadCredentials(const char *id, const uint32_t idLength,
-                             const char *login, const uint32_t loginLength,
-                             void **password, uint32_t *passwordLength);
+int32_t SLCS_CreateCredentialsW(LPCWSTR ServiceName, const size_t ServiceNameLength,
+                                LPCWSTR LoginName, const size_t LoginNameLength,
+                                const void *pPassword,
+                                const size_t PasswordLength);
 
-int32_t SLCS_UpdateCredentials(const char *id, const uint32_t idLength,
-                               const char *login, const uint32_t loginLength,
-                               const void *password,
-                               const uint32_t passwordLength);
+int32_t SLCS_CreateCredentialsA(LPCSTR ServiceName, const size_t ServiceNameLength,
+                                LPCSTR LoginName, const size_t LoginNameLength,
+                                const void *pPassword,
+                                const size_t PasswordLength);
 
-int32_t SLCS_DeleteCredentials(const char *id, const uint32_t idLength,
-                               const char* login, const uint32_t loginLength);
-   
-int32_t SLCS_AllocPassword(void** password, const uint32_t passwordLength);
-   
-void SLCS_DeletePassword(void** password, const uint32_t passwordLength);
+int32_t SLCS_ReadCredentialsW(LPCWSTR ServiceName, const size_t ServiceNameLength,
+                              LPCWSTR LoginName, const size_t LoginNameLength,
+                              void **ppPassword, size_t *pPasswordLength);
+
+int32_t SLCS_ReadCredentialsA(LPCSTR ServiceName, const size_t ServiceNameLength,
+                              LPCSTR LoginName, const size_t LoginNameLength,
+                              void **ppPassword, size_t *pPasswordLength);
+
+int32_t SLCS_UpdateCredentialsW(LPCWSTR ServiceName, const size_t ServiceNameLength,
+                                LPCWSTR LoginName, const size_t LoginNameLength,
+                                const void *pPassword,
+                                const size_t PasswordLength);
+
+int32_t SLCS_UpdateCredentialsA(LPCSTR ServiceName, const size_t ServiceNameLength,
+                                LPCSTR LoginName, const size_t LoginNameLength,
+                                const void *pPassword,
+                                const size_t PasswordLength);
+
+int32_t SLCS_DeleteCredentialsW(LPCWSTR ServiceName, const size_t ServiceNameLength,
+                                LPCWSTR LoginName, const size_t LoginNameLength);
+
+int32_t SLCS_DeleteCredentialsA(LPCSTR ServiceName, const size_t ServiceNameLength,
+                                LPCSTR LoginName, const size_t LoginNameLength);
+
+#ifdef UNICODE
+#define SLCS_CreateCredentials  SLCS_CreateCredentialsW
+#define SLCS_ReadCredentials    SLCS_ReadCredentialsW
+#define SLCS_UpdateCredentials  SLCS_UpdateCredentialsW
+#define SLCS_DeleteCredentials  SLCS_DeleteCredentialsW
+#else
+#define SLCS_CreateCredentials  SLCS_CreateCredentialsA
+#define SLCS_ReadCredentials    SLCS_ReadCredentialsA
+#define SLCS_UpdateCredentials  SLCS_UpdateCredentialsA
+#define SLCS_DeleteCredentials  SLCS_DeleteCredentialsA
+#endif // #ifdef UNICODE
+
+
+int32_t SLCS_AllocPassword(void** ppPassword, const size_t PasswordLength);
+
+void SLCS_DeletePassword(void** ppPassword, const size_t PasswordLength);
 
 #ifndef __cplusplus__
 }

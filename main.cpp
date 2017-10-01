@@ -6,7 +6,7 @@
 int main(int argc, char **argv)
 {
    void* password = NULL;
-   uint32_t passwordLength = 0;
+   size_t passwordLength = 0;
    
    int32_t result = SLCS_ReadCredentials("SLCS", 4, "User", 4, (void**)&password, &passwordLength);
    if(SLCS_SUCCESS == result)
