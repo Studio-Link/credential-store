@@ -54,6 +54,10 @@ int32_t SLCS_AnsiStringToUnicodeString(LPCSTR AnsiString, const size_t AnsiStrin
         result = SLCS_FAILURE;
       }
     }
+    else
+    {
+      result = SLCS_OUT_OF_MEMORY;
+    }
   }
 
   return result;
