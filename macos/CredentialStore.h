@@ -15,7 +15,7 @@
 #define SAFE_DELETE(a) \
 if ((a)) {     \
 free((a));  \
-a = NULL;  \
+a = 0;  \
 }
 
 #define SLCS_SUCCESS 0
@@ -29,26 +29,26 @@ a = NULL;  \
 extern "C" {
 #endif // #ifndef __cplusplus__
    
-int32_t SLCS_CreateCredentials(const char *id, const uint32_t idLength,
-                               const char *login, const uint32_t loginLength,
-                               const void *password,
-                               const uint32_t passwordLength);
+int32_t SLCS_CreateCredentials(const char* ServiceName, const size_t ServiceNameLength,
+                               const char* LoginName, const size_t LoginNameLength,
+                               const void* Password,
+                               const size_t PasswordLength);
 
-int32_t SLCS_ReadCredentials(const char *id, const uint32_t idLength,
-                             const char *login, const uint32_t loginLength,
-                             void **password, uint32_t *passwordLength);
+int32_t SLCS_ReadCredentials(const char* ServiceName, const size_t ServiceNameLength,
+                             const char* LoginName, const size_t LoginNameLength,
+                             void** pPassword, size_t* pPasswordLength);
 
-int32_t SLCS_UpdateCredentials(const char *id, const uint32_t idLength,
-                               const char *login, const uint32_t loginLength,
-                               const void *password,
-                               const uint32_t passwordLength);
+int32_t SLCS_UpdateCredentials(const char* ServiceName, const size_t ServiceNameLength,
+                               const char* LoginName, const size_t LoginNameLength,
+                               const void* Password,
+                               const size_t PasswordLength);
 
-int32_t SLCS_DeleteCredentials(const char *id, const uint32_t idLength,
-                               const char* login, const uint32_t loginLength);
+int32_t SLCS_DeleteCredentials(const char* ServiceName, const size_t ServiceNameLength,
+                               const char* LoginName, const size_t LoginNameLength);
    
-int32_t SLCS_AllocPassword(void** password, const uint32_t passwordLength);
+int32_t SLCS_AllocPassword(void** pPassword, const size_t PasswordLength);
    
-void SLCS_DeletePassword(void** password, const uint32_t passwordLength);
+void SLCS_DeletePassword(void** pPassword, const size_t PasswordLength);
 
 #ifndef __cplusplus__
 }

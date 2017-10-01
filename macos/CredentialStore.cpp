@@ -9,237 +9,242 @@
 
 #include "CredentialStore.h"
 
-void SLCS_PrintSecError(const char *description, const OSStatus status)
+void SLCS_PrintSecError(const char* Description, const OSStatus Status)
 {
-   PRECONDITION(description != NULL);
+   PRECONDITION(Description != 0);
    
-   CFStringRef errorMessage = SecCopyErrorMessageString(status, NULL);
-   if (errorMessage != NULL)
+   CFStringRef ErrorMessage = SecCopyErrorMessageString(Status, 0);
+   if (ErrorMessage != 0)
    {
-      CFIndex minBufferLength = CFStringGetLength(errorMessage);
-      CFIndex maxBufferLength = CFStringGetMaximumSizeForEncoding(minBufferLength, kCFStringEncodingUTF8) + 1;
-      char *buffer = (char *)calloc(maxBufferLength, sizeof(char));
-      if (buffer != NULL)
+      CFIndex MinBufferLength = CFStringGetLength(ErrorMessage);
+      CFIndex MaxBufferLength = CFStringGetMaximumSizeForEncoding(MinBufferLength, kCFStringEncodingUTF8) + 1;
+      char *Buffer = (char *)calloc(MaxBufferLength, sizeof(char));
+      if (Buffer != 0)
       {
-         if (CFStringGetCString(errorMessage, buffer, maxBufferLength,
+         if (CFStringGetCString(ErrorMessage, Buffer, MaxBufferLength,
                                 kCFStringEncodingUTF8) != FALSE)
          {
-            std::cout << description << ", rc = " << (int32_t)status << ", '" << buffer << "'" << std::endl;
+            std::cout << Description << ", rc = " << (int32_t)Status << ", '" << Buffer << "'" << std::endl;
          }
          
-         free(buffer);
-         buffer = NULL;
+         free(Buffer);
+         Buffer = 0;
       }
       
-      CFRelease(errorMessage);
-      errorMessage = NULL;
+      CFRelease(ErrorMessage);
+      ErrorMessage = 0;
    }
 }
 
-int32_t SLCS_CreateCredentials(const char *id, const uint32_t idLength,
-                               const char *login, const uint32_t loginLength,
-                               const void *password,
-                               const uint32_t passwordLength)
+int32_t SLCS_CreateCredentials(const char* ServiceName, const size_t ServiceNameLength,
+                               const char* LoginName, const size_t LoginNameLength,
+                               const void* Password,
+                               const size_t PasswordLength)
 {
-   PRECONDITION_RETURN(id != NULL, SLCS_INVALID_PARAMETER);
-   PRECONDITION_RETURN(idLength > 0, SLCS_INVALID_PARAMETER);
-   PRECONDITION_RETURN(login != NULL, SLCS_INVALID_PARAMETER);
-   PRECONDITION_RETURN(loginLength > 0, SLCS_INVALID_PARAMETER);
-   PRECONDITION_RETURN(password != NULL, SLCS_INVALID_PARAMETER);
-   PRECONDITION_RETURN(passwordLength > 0, SLCS_INVALID_PARAMETER);
+   PRECONDITION_RETURN(ServiceName != 0, SLCS_INVALID_PARAMETER);
+   PRECONDITION_RETURN(ServiceNameLength > 0, SLCS_INVALID_PARAMETER);
+   PRECONDITION_RETURN(LoginName != 0, SLCS_INVALID_PARAMETER);
+   PRECONDITION_RETURN(LoginNameLength > 0, SLCS_INVALID_PARAMETER);
+   PRECONDITION_RETURN(Password != 0, SLCS_INVALID_PARAMETER);
+   PRECONDITION_RETURN(PasswordLength > 0, SLCS_INVALID_PARAMETER);
    
-   int32_t result = SLCS_FAILURE;
+   int32_t Result = SLCS_FAILURE;
    
-   OSStatus status = SecKeychainAddGenericPassword(NULL, idLength, id, loginLength, login, passwordLength, password, NULL);
-   if (errSecSuccess == status)
+   OSStatus Status = SecKeychainAddGenericPassword(0, (UInt32)ServiceNameLength, ServiceName, (UInt32)LoginNameLength,
+                                                   LoginName, (UInt32)PasswordLength, Password, 0);
+   if (errSecSuccess == Status)
    {
-      result = SLCS_SUCCESS;
+      Result = SLCS_SUCCESS;
    }
    else
    {
-      SLCS_PrintSecError("SecKeychainAddGenericPassword() failed", status);
+      SLCS_PrintSecError("SecKeychainAddGenericPassword() failed", Status);
       
-      if(errSecDuplicateItem == status)
+      if(errSecDuplicateItem == Status)
       {
-         result = SLCS_ITEM_ALREADY_EXISTS;
+         Result = SLCS_ITEM_ALREADY_EXISTS;
       }
       else
       {
-         result = SLCS_FAILURE;
+         Result = SLCS_FAILURE;
       }
    }
    
-   return result;
+   return Result;
 }
 
-int32_t SLCS_ReadCredentials(const char *id, const uint32_t idLength,
-                             const char *login, const uint32_t loginLength,
-                             void **password, uint32_t *passwordLength)
+int32_t SLCS_ReadCredentials(const char* ServiceName, const size_t ServiceNameLength,
+                             const char* LoginName, const size_t LoginNameLength,
+                             void** pPassword, size_t* pPasswordLength)
 {
-   PRECONDITION_RETURN(id != NULL, SLCS_INVALID_PARAMETER);
-   PRECONDITION_RETURN(idLength > 0, SLCS_INVALID_PARAMETER);
-   PRECONDITION_RETURN(login != NULL, SLCS_INVALID_PARAMETER);
-   PRECONDITION_RETURN(loginLength > 0, SLCS_INVALID_PARAMETER);
-   PRECONDITION_RETURN(password != NULL, SLCS_INVALID_PARAMETER);
-   PRECONDITION_RETURN(passwordLength != NULL, SLCS_INVALID_PARAMETER);
+   PRECONDITION_RETURN(ServiceName != 0, SLCS_INVALID_PARAMETER);
+   PRECONDITION_RETURN(ServiceNameLength > 0, SLCS_INVALID_PARAMETER);
+   PRECONDITION_RETURN(LoginName != 0, SLCS_INVALID_PARAMETER);
+   PRECONDITION_RETURN(LoginNameLength > 0, SLCS_INVALID_PARAMETER);
+   PRECONDITION_RETURN(pPassword != 0, SLCS_INVALID_PARAMETER);
+   PRECONDITION_RETURN(pPasswordLength != 0, SLCS_INVALID_PARAMETER);
    
-   int32_t result = SLCS_FAILURE;
+   int32_t Result = SLCS_FAILURE;
    
-   *passwordLength = 0;
-   *password = NULL;
+   *pPasswordLength = 0;
+   *pPassword = 0;
    
-   void *passwordBuffer = NULL;
-   SecKeychainItemRef item = NULL;
-   OSStatus status =
-   SecKeychainFindGenericPassword(NULL, (UInt32)idLength, id, (UInt32)loginLength, login,
-                                  (UInt32*)passwordLength, &passwordBuffer, &item);
-   if (errSecSuccess == status)
+   void* PasswordBuffer = 0;
+   SecKeychainItemRef Item = 0;
+   OSStatus Status =
+   SecKeychainFindGenericPassword(0, (UInt32)ServiceNameLength, ServiceName, (UInt32)LoginNameLength,
+                                  LoginName, (UInt32*)pPasswordLength, &PasswordBuffer, &Item);
+   if (errSecSuccess == Status)
    {
-      result = SLCS_AllocPassword(password, *passwordLength);
-      if ((SLCS_SUCCESS == result) && (*password != NULL))
+      Result = SLCS_AllocPassword(pPassword, *pPasswordLength);
+      if ((SLCS_SUCCESS == Result) && (*pPassword != 0))
       {
-         memmove(*password, passwordBuffer, *passwordLength);
-         result = SLCS_SUCCESS;
+         memmove(*pPassword, PasswordBuffer, *pPasswordLength);
+         Result = SLCS_SUCCESS;
       }
       
-      SecKeychainItemFreeContent(NULL, passwordBuffer);
-      passwordBuffer = NULL;
+      SecKeychainItemFreeContent(0, PasswordBuffer);
+      PasswordBuffer = 0;
       
-      CFRelease(item);
-      item = NULL;
+      CFRelease(Item);
+      Item = 0;
    }
    else
    {
-      SLCS_PrintSecError("SecKeychainFindGenericPassword() failed", status);
+      SLCS_PrintSecError("SecKeychainFindGenericPassword() failed", Status);
       
-      if(errSecItemNotFound == status)
+      if(errSecItemNotFound == Status)
       {
-         result = SLCS_ITEM_NOT_FOUND;
+         Result = SLCS_ITEM_NOT_FOUND;
       }
       else
       {
-         result = SLCS_FAILURE;
+         Result = SLCS_FAILURE;
       }
    }
    
-   return result;
+   return Result;
 }
 
-int32_t SLCS_UpdateCredentials(const char *id, const uint32_t idLength,
-                               const char *login, const uint32_t loginLength,
-                               const void *password,
-                               const uint32_t passwordLength)
+int32_t SLCS_UpdateCredentials(const char* ServiceName, const size_t ServiceNameLength,
+                               const char* LoginName, const size_t LoginNameLength,
+                               const void* Password,
+                               const size_t PasswordLength)
 {
-   PRECONDITION_RETURN(id != NULL, SLCS_INVALID_PARAMETER);
-   PRECONDITION_RETURN(idLength > 0, SLCS_INVALID_PARAMETER);
-   PRECONDITION_RETURN(login != NULL, SLCS_INVALID_PARAMETER);
-   PRECONDITION_RETURN(loginLength > 0, SLCS_INVALID_PARAMETER);
-   PRECONDITION_RETURN(password != NULL, SLCS_INVALID_PARAMETER);
-   PRECONDITION_RETURN(passwordLength > 0, SLCS_INVALID_PARAMETER);
+   PRECONDITION_RETURN(ServiceName != 0, SLCS_INVALID_PARAMETER);
+   PRECONDITION_RETURN(ServiceNameLength > 0, SLCS_INVALID_PARAMETER);
+   PRECONDITION_RETURN(LoginName != 0, SLCS_INVALID_PARAMETER);
+   PRECONDITION_RETURN(LoginNameLength > 0, SLCS_INVALID_PARAMETER);
+   PRECONDITION_RETURN(Password != 0, SLCS_INVALID_PARAMETER);
+   PRECONDITION_RETURN(PasswordLength > 0, SLCS_INVALID_PARAMETER);
    
-   int32_t result = SLCS_FAILURE;
+   int32_t Result = SLCS_FAILURE;
    
-   SecKeychainItemRef item = NULL;
-   OSStatus status = SecKeychainFindGenericPassword(NULL, idLength, id, loginLength, login, 0, NULL, &item);
-   if (errSecSuccess == status)
+   SecKeychainItemRef Item = 0;
+   OSStatus Status = SecKeychainFindGenericPassword(0, (UInt32)ServiceNameLength, ServiceName,
+                                                    (UInt32)LoginNameLength, LoginName, 0, 0, &Item);
+   if (errSecSuccess == Status)
    {
-      status = SecKeychainItemModifyAttributesAndData(item, NULL, passwordLength,
-                                                      password);
-      if (errSecSuccess == status)
+      Status = SecKeychainItemModifyAttributesAndData(Item, 0, (UInt32)PasswordLength,
+                                                      Password);
+      if (errSecSuccess == Status)
       {
-         result = SLCS_SUCCESS;
+         Result = SLCS_SUCCESS;
       }
       else
       {
          SLCS_PrintSecError("SecKeychainItemModifyAttributesAndData() failed",
-                            status);
+                            Status);
       }
    }
    else
    {
-      SLCS_PrintSecError("SecKeychainFindGenericPassword() failed", status);
+      SLCS_PrintSecError("SecKeychainFindGenericPassword() failed", Status);
       
-      if(errSecItemNotFound == status)
+      if(errSecItemNotFound == Status)
       {
-         result = SLCS_ITEM_NOT_FOUND;
+         Result = SLCS_ITEM_NOT_FOUND;
       }
       else
       {
-         result = SLCS_FAILURE;
+         Result = SLCS_FAILURE;
       }
    }
    
-   return result;
+   return Result;
 }
 
-int32_t SLCS_DeleteCredentials(const char *id, const uint32_t idLength, const char* login, const uint32_t loginLength)
+int32_t SLCS_DeleteCredentials(const char *ServiceName, const size_t ServiceNameLength,
+                               const char* LoginName, const size_t LoginNameLength)
 {
+   PRECONDITION_RETURN(ServiceName != 0, SLCS_INVALID_PARAMETER);
+   PRECONDITION_RETURN(ServiceNameLength > 0, SLCS_INVALID_PARAMETER);
+   PRECONDITION_RETURN(LoginName != 0, SLCS_INVALID_PARAMETER);
+   PRECONDITION_RETURN(LoginNameLength > 0, SLCS_INVALID_PARAMETER);
+
+   int32_t Result = SLCS_FAILURE;
    
-   PRECONDITION_RETURN(id != NULL, SLCS_INVALID_PARAMETER);
-   PRECONDITION_RETURN(idLength > 0, SLCS_INVALID_PARAMETER);
-   
-   int32_t result = SLCS_FAILURE;
-   
-   SecKeychainItemRef item = NULL;
-   OSStatus status = SecKeychainFindGenericPassword(NULL, idLength, id, loginLength, login, 0, NULL, &item);
-   if (errSecSuccess == status)
+   SecKeychainItemRef Item = 0;
+   OSStatus Status = SecKeychainFindGenericPassword(0, (UInt32)ServiceNameLength, ServiceName,
+                                                    (UInt32)LoginNameLength, LoginName, 0, 0, &Item);
+   if (errSecSuccess == Status)
    {
-      status = SecKeychainItemDelete(item);
-      if (errSecSuccess == status)
+      Status = SecKeychainItemDelete(Item);
+      if (errSecSuccess == Status)
       {
-         result = SLCS_SUCCESS;
+         Result = SLCS_SUCCESS;
       }
       else
       {
          SLCS_PrintSecError("SecKeychainItemModifyAttributesAndData() failed",
-                            status);
+                            Status);
       }
    }
    else
    {
-      SLCS_PrintSecError("SecKeychainFindGenericPassword() failed", status);
+      SLCS_PrintSecError("SecKeychainFindGenericPassword() failed", Status);
       
-      if(errSecItemNotFound == status)
+      if(errSecItemNotFound == Status)
       {
-         result = SLCS_ITEM_NOT_FOUND;
+         Result = SLCS_ITEM_NOT_FOUND;
       }
       else
       {
-         result = SLCS_FAILURE;
+         Result = SLCS_FAILURE;
       }
    }
 
-   return result;
+   return Result;
 }
 
-int32_t SLCS_AllocPassword(void** password, const uint32_t passwordLength)
+int32_t SLCS_AllocPassword(void** pPassword, const size_t PasswordLength)
 {
-   PRECONDITION_RETURN(password != NULL, SLCS_INVALID_PARAMETER);
-   PRECONDITION_RETURN(*password == NULL, SLCS_INVALID_PARAMETER);
-   PRECONDITION_RETURN(passwordLength > 0, SLCS_INVALID_PARAMETER);
+   PRECONDITION_RETURN(pPassword != 0, SLCS_INVALID_PARAMETER);
+   PRECONDITION_RETURN(*pPassword == 0, SLCS_INVALID_PARAMETER);
+   PRECONDITION_RETURN(PasswordLength > 0, SLCS_INVALID_PARAMETER);
    
-   int32_t result = SLCS_FAILURE;
+   int32_t Result = SLCS_FAILURE;
    
-   *password = calloc(passwordLength, sizeof(char));
-   if(*password != NULL)
+   *pPassword = calloc(PasswordLength, sizeof(char));
+   if(*pPassword != 0)
    {
-      result = SLCS_SUCCESS;
+      Result = SLCS_SUCCESS;
    }
    else
    {
-      result = SLCS_OUT_OF_MEMORY;
+      Result = SLCS_OUT_OF_MEMORY;
    }
    
-   return result;
+   return Result;
 }
 
-void SLCS_DeletePassword(void** password, const uint32_t passwordLength)
+void SLCS_DeletePassword(void** pPassword, const size_t PasswordLength)
 {
-   PRECONDITION(password != NULL);
-   PRECONDITION(*password != NULL);
-   PRECONDITION(passwordLength > 0);
+   PRECONDITION(pPassword != 0);
+   PRECONDITION(*pPassword != 0);
+   PRECONDITION(PasswordLength > 0);
    
-   memset(*password, 0, passwordLength);
-   free(*password);
-   *password = NULL;
+   memset(*pPassword, 0, PasswordLength);
+   free(*pPassword);
+   *pPassword = 0;
 }
